@@ -3,4 +3,7 @@
     <string name="permission_message">Grant location access for track your location</string>
     <string name="enable">enable</string>
     <string name="location">lat: %1$f, lng: %2$f</string>
+    <string name="gps_network_not_enabled">Gps network not enabled</string>
+    <string name="open_location_settings">Open location settings</string>
+    <string name="cancel">Cancel</string>
 </resources>

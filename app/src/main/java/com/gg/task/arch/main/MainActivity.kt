@@ -2,11 +2,15 @@ package com.gg.task.arch.main
 
 import android.animation.LayoutTransition
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import androidx.core.app.ActivityCompat
@@ -39,6 +43,25 @@ class MainActivity : DaggerAppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         init()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        locationPermissionGranted = false
+        when (requestCode) {
+            PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    locationPermissionGranted = true
+                    enableGps()
+                }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == CONNECTION_CODE && resultCode == Activity.RESULT_OK) {
+            locationEnabled()
+        }
     }
 
     private fun init() {
@@ -76,25 +99,6 @@ class MainActivity : DaggerAppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        locationPermissionGranted = false
-        when (requestCode) {
-            PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    locationPermissionGranted = true
-                    enableGps()
-                }
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CONNECTION_CODE && resultCode == Activity.RESULT_OK) {
-            locationEnabled()
-        }
-    }
-
     private fun locationEnabled() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intentTo(LocationService::class.java))
@@ -106,6 +110,7 @@ class MainActivity : DaggerAppCompatActivity() {
     private fun enableGps() {
         permissionMessageSection.visibility = GONE
         if (!GgTask.checkPlayServices()) {
+            enableGpsNative()
             locationEnabled()
             return
         }
@@ -133,6 +138,20 @@ class MainActivity : DaggerAppCompatActivity() {
 
                 }
             }
+        }
+    }
+
+    private fun enableGpsNative() {
+        if (!(this.getSystemService(Context.LOCATION_SERVICE) as LocationManager)
+                .isProviderEnabled(LocationManager.GPS_PROVIDER)
+        ) {
+            AlertDialog.Builder(this)
+                .setMessage(R.string.gps_network_not_enabled)
+                .setPositiveButton(R.string.open_location_settings) { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
         }
     }
 }

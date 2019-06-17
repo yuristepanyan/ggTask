@@ -4,14 +4,15 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.gg.task.auth.Authentication
+import com.gg.task.extensions.toPosition
 import com.gg.task.model.Position
 import com.google.firebase.firestore.FirebaseFirestore
 import javax.inject.Inject
 
 private const val TAG = "FIRESTORE_TAG"
 private const val DB_NAME = "USERS"
-private const val LAT_KEY = "lat"
-private const val LNG_KEY = "lng"
+const val LAT_KEY = "lat"
+const val LNG_KEY = "lng"
 
 class FirestoreHelperImpl @Inject constructor(private val authentication: Authentication) : FirestoreHelper {
     private val db = FirebaseFirestore.getInstance()
@@ -33,7 +34,7 @@ class FirestoreHelperImpl @Inject constructor(private val authentication: Authen
                 }
 
                 if (snapshot != null && snapshot.exists()) {
-                    location.postValue(Position(snapshot[LAT_KEY] as Double, snapshot[LNG_KEY] as Double))
+                    location.postValue(snapshot.toPosition())
                 } else {
                     location.postValue(null)
                 }
